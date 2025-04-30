@@ -92,14 +92,32 @@ impl Sphere {
         Self { center, radius }
     }
 
-    fn hit(&self, ray: &Ray) -> bool {
+    fn hit(&self, ray: &Ray) -> Option<f64> {
         let oc = ray.origin.subtract(&self.center);
         let a = ray.direction.dot(&ray.direction);
-        let b = 2.0 * oc.dot(&ray.direction);
+        let b = 2.0 * ray.direction.dot(&oc);
         let c = oc.dot(&oc) - self.radius * self.radius;
         let discriminant = b * b - 4.0 * a * c;
-        discriminant > 0.0
+
+        if discriminant < 0.0 {
+            None
+        } else {
+            Some((-b - discriminant.sqrt()) / (2.0 * a))
+        }
     }
+}
+
+fn ray_color(ray: &Ray, sphere: &Sphere) -> Vec3 {
+    if let Some(t) = sphere.hit(ray) {
+        let hit_point = ray.at(t);
+        let normal = hit_point.subtract(&sphere.center).normalize();
+        return Vec3::new(normal.x + 1.0, normal.y + 1.0, normal.z + 1.0).multiply(0.5);
+    }
+
+    // Background gradient
+    let unit_direction = ray.direction.normalize();
+    let t = 0.5 * (unit_direction.y + 1.0);
+    Vec3::new(1.0, 1.0, 1.0).multiply(1.0 - t).add(&Vec3::new(0.5, 0.7, 1.0).multiply(t))
 }
 
 // ---- Write PPM ----
@@ -169,7 +187,7 @@ fn main() {
 
             let ray = Ray::new(camera_origin, ray_direction);
 
-            if sphere.hit(&ray) {
+            /*if sphere.hit(&ray) {
                 image.push(Vec3::new(1.0, 0.0, 0.0)); //Red
             } else {
                 //let color = Vec3::new(0.5, 0.7, 1.0); //Sky blue. Commented out as testing reference.
@@ -179,7 +197,11 @@ fn main() {
                 //let color = Vec3::new(1.0, 1.0, 1.0).multiply(1.0 - t).add(&Vec3::new(0.5, 0.7, 1.0).multiply(t)); //Sky blue
                 let color = Vec3::new(1.0, 1.0, 1.0).multiply(1.0 - t).add(&Vec3::new(0.8, 0.2, 0.8).multiply(t)); //Dark green
                 image.push(color);
-            }
+            }*/
+
+            let color = ray_color(&ray, &sphere);
+            image.push(color);
+
         }
     }
 
