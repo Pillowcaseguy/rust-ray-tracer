@@ -1,4 +1,5 @@
 mod matrix;
+mod objects;
 mod ray;
 mod render;
 

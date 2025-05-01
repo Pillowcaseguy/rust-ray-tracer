@@ -1,4 +1,7 @@
-use crate::matrix::{self, Unit, Vec3};
+use crate::{
+    matrix::{self, Vec3},
+    objects::sphere,
+};
 
 #[derive(Default)]
 pub struct Ray {
@@ -22,15 +25,18 @@ impl Ray {
         self.dir
     }
 
-    pub fn at(&self, t: Unit) -> Vec3 {
+    pub fn at(&self, t: f64) -> Vec3 {
         self.orig + t * self.dir
     }
-}
 
-pub fn ray_color(r: &Ray) -> Vec3 {
-    let unit_direction = matrix::unit_vector(r.direction());
+    pub fn ray_color(&self) -> Vec3 {
+        if sphere::Sphere::hit_sphere(Vec3::new(-1.0, -1.0, -2.0), 0.5, self) {
+            return Vec3::new(2.0, 4.0, 0.0);
+        }
 
-    let t = unit_direction.y() + 1;
+        let unit_direction = matrix::unit_vector(self.direction());
+        let t = 0.5 * (unit_direction.y() + 1.0);
 
-    (1 - t) * Vec3::new(5, 7, 1) + t * Vec3::new(5, 7, 2)
+        (1.0 - t) * Vec3::new(1.0, 1.0, 1.0) + t * Vec3::new(0.5, 0.7, 1.0)
+    }
 }
